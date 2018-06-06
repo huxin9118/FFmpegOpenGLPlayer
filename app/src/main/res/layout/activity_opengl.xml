@@ -29,7 +29,7 @@
                 android:layout_width="0px"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/selector_bottom_button">
+                android:background="@drawable/opengl_selector_bottom_button">
                 <ImageView
                     android:id="@+id/imgBack"
                     android:layout_width="@dimen/bottom_button_width_And_height"
@@ -43,7 +43,7 @@
                 android:layout_width="0px"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/selector_bottom_button">
+                android:background="@drawable/opengl_selector_bottom_button">
                 <ImageView
                     android:id="@+id/imgBackward"
                     android:layout_width="@dimen/bottom_button_width_And_height"
@@ -57,7 +57,7 @@
                 android:layout_width="0px"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/selector_bottom_button">
+                android:background="@drawable/opengl_selector_bottom_button">
                 <ImageView
                     android:id="@+id/imgPause"
                     android:layout_width="@dimen/bottom_button_width_And_height"
@@ -71,7 +71,7 @@
                 android:layout_width="0px"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/selector_bottom_button">
+                android:background="@drawable/opengl_selector_bottom_button">
                 <ImageView
                     android:id="@+id/imgForward"
                     android:layout_width="@dimen/bottom_button_width_And_height"
@@ -85,7 +85,7 @@
                 android:layout_width="0px"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/selector_bottom_button">
+                android:background="@drawable/opengl_selector_bottom_button">
                 <ImageView
                     android:id="@+id/imgZoom"
                     android:layout_width="@dimen/bottom_button_width_And_height"
@@ -126,8 +126,8 @@
                 android:paddingBottom="15dp"
                 android:max="100"
                 android:progress="0"
-                android:progressDrawable="@drawable/progressbar"
-                android:thumb="@drawable/seek_thumb"
+                android:progressDrawable="@drawable/opengl_progressbar"
+                android:thumb="@drawable/opengl_seek_thumb"
                 android:thumbOffset="0dp"
                 android:visibility="visible"/>
 
@@ -179,7 +179,7 @@
             android:layout_below="@id/topBar"
             android:layout_marginTop="20dp"
             android:layout_marginLeft="5dp"
-            android:src="@drawable/selector_rotate_button"/>
+            android:src="@drawable/opengl_selector_rotate_button"/>
 
         <TextView
             android:id="@+id/textStatus"

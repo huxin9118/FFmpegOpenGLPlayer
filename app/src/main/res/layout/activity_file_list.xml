@@ -6,8 +6,7 @@
     android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="20dp"
-    tools:context="com.example.ffmpegsdlplayer.activity.MainActivity">
+    android:layout_marginTop="20dp">
 
     <!--<TextView-->
         <!--android:id="@+id/label"-->

@@ -43,7 +43,6 @@ import com.example.ffmpegsdlplayer.base.OnItemClickListener;
 import com.example.ffmpegsdlplayer.utils.ConstantUtils;
 import com.example.ffmpegsdlplayer.utils.FileUtils;
 import com.example.ffmpegsdlplayer.utils.ImageUtils;
-import com.example.ffmpegsdlplayer.utils.RotateTransformation;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -59,7 +58,7 @@ import wseemann.media.FFmpegMediaMetadataRetriever;
  * Created by h26376 on 2017/9/1.
  */
 
-public class MainActivity extends AppCompatActivity implements ActionMode.Callback{
+public class FileListActivity extends AppCompatActivity implements ActionMode.Callback{
     private static final String TAG = "MAIN";
     private Toast mToast;
     private final String PERMISSION_WRITE_EXTERNAL_STORAGE= "android.permission.WRITE_EXTERNAL_STORAGE";
@@ -81,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
 
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLayoutManager;
-    private MainActivityRecyclerAdapter mRecyclerViewAdapter;
+    private FileListActivityRecyclerAdapter mRecyclerViewAdapter;
     private List<MediaInfo> mediaInfoList;
 
 
@@ -152,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
             }
         }
         else {
-            setContentView(R.layout.activity_main);
+            setContentView(R.layout.activity_file_list);
             root = (RelativeLayout) findViewById(R.id.root);
             fab = (FloatingActionButton) findViewById(R.id.floatingActionButton);
             fab.setOnClickListener(new View.OnClickListener() {
@@ -199,7 +198,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
             mLayoutManager = new LinearLayoutManager(this);
             mLayoutManager.setOrientation(OrientationHelper.VERTICAL);
             mRecyclerView.setLayoutManager(mLayoutManager);
-            mRecyclerViewAdapter = new MainActivityRecyclerAdapter(this);
+            mRecyclerViewAdapter = new FileListActivityRecyclerAdapter(this);
             mRecyclerViewAdapter.setCreateViewLayout(R.layout.item_recycler_main);
 
             mRecyclerViewAdapter.setOnItemClickListener(new OnItemClickListener(){
@@ -224,21 +223,21 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                                     } else{
                                         if ("yuv".equals(type)) {
                                             Intent intent = new Intent();
-                                            intent.setClass(MainActivity.this, OpenGLActivity.class);
+                                            intent.setClass(FileListActivity.this, OpenGLActivity.class);
                                             intent.putExtra("input_url", input_url);
                                             intent.putExtra("isYUV", true);
                                             startActivityForResult(intent,REFRESH_UI);
                                         } else {
                                             if (ConstantUtils.isStreamMedia(type)) {
                                                 Intent intent = new Intent();
-                                                intent.setClass(MainActivity.this, OpenGLActivity.class);
+                                                intent.setClass(FileListActivity.this, OpenGLActivity.class);
                                                 intent.putExtra("input_url", input_url);
                                                 intent.putExtra("isStreamMedia", true);
                                                 intent.putExtra("codec_type", codec_type);
                                                 startActivity(intent);
                                             } else {
                                                 Intent intent = new Intent();
-                                                intent.setClass(MainActivity.this, OpenGLActivity.class);
+                                                intent.setClass(FileListActivity.this, OpenGLActivity.class);
                                                 intent.putExtra("input_url", input_url);
                                                 intent.putExtra("codec_type", codec_type);
                                                 startActivity(intent);
@@ -266,21 +265,21 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                                 } else{
                                     if ("yuv".equals(type)) {
                                         Intent intent = new Intent();
-                                        intent.setClass(MainActivity.this, OpenGLActivity.class);
+                                        intent.setClass(FileListActivity.this, OpenGLActivity.class);
                                         intent.putExtra("input_url", input_url);
                                         intent.putExtra("isYUV", true);
                                         startActivityForResult(intent,REFRESH_UI);
                                     } else {
                                         if (ConstantUtils.isStreamMedia(type)) {
                                             Intent intent = new Intent();
-                                            intent.setClass(MainActivity.this, OpenGLActivity.class);
+                                            intent.setClass(FileListActivity.this, OpenGLActivity.class);
                                             intent.putExtra("input_url", input_url);
                                             intent.putExtra("isStreamMedia", true);
                                             intent.putExtra("codec_type", codec_type);
                                             startActivity(intent);
                                         } else {
                                             Intent intent = new Intent();
-                                            intent.setClass(MainActivity.this, OpenGLActivity.class);
+                                            intent.setClass(FileListActivity.this, OpenGLActivity.class);
                                             intent.putExtra("input_url", input_url);
                                             intent.putExtra("codec_type", codec_type);
                                             startActivity(intent);
@@ -304,7 +303,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                 public void onLongClick(View view, int pos, String viewName) {
                     if ("itemView".equals(viewName)) {
                         if (actionMode == null) {
-                            actionMode = startSupportActionMode(MainActivity.this);
+                            actionMode = startSupportActionMode(FileListActivity.this);
                             addOrRemove(pos);
                         }
                     }
@@ -535,7 +534,7 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
                         mRecyclerViewAdapter.notifyDataSetChanged();
 
                         Intent intent = new Intent();
-                        intent.setClass(MainActivity.this, OpenGLActivity.class);
+                        intent.setClass(FileListActivity.this, OpenGLActivity.class);
                         intent.putExtra("input_url", input_url);
                         intent.putExtra("isStreamMedia", true);
                         intent.putExtra("codec_type", codec_type);
@@ -721,13 +720,13 @@ public class MainActivity extends AppCompatActivity implements ActionMode.Callba
     }
 }
 
-class MainActivityRecyclerAdapter extends BaseRecyclerViewAdapter {
+class FileListActivityRecyclerAdapter extends BaseRecyclerViewAdapter {
     private static final String TAG = "MAIN";
     private Context mContext;
     public Set<Integer> positionSet;
     public boolean isSelectAll = false;
 
-    public MainActivityRecyclerAdapter(Context context) {
+    public FileListActivityRecyclerAdapter(Context context) {
         super(context);
         mContext = context;
         positionSet = new TreeSet<Integer>();
@@ -795,7 +794,7 @@ class MainActivityRecyclerAdapter extends BaseRecyclerViewAdapter {
                     }
                 } else {
                     Log.i(TAG, "onBindViewHolder: "+thumbnailPath);
-                    Glide.with(mContext).load(thumbnailPath).transform(new RotateTransformation(mContext,mediaInfoList.get(pos).getRotate())).into(holder.thumbnail);
+                    Glide.with(mContext).load(thumbnailPath).into(holder.thumbnail);
                     holder.img.setVisibility(View.VISIBLE);
                 }
             }
@@ -857,6 +856,7 @@ class MainActivityRecyclerAdapter extends BaseRecyclerViewAdapter {
                 Log.i(TAG, "doInBackground: "+ mediaInfos[0].toString());
                 thumbnail = ffmr.getScaledFrameAtTime(-1L, mediaInfos[0].getWidth()/4,mediaInfos[0].getHeight()/4 );
                 if(thumbnail != null){
+                    thumbnail = ImageUtils.rotateBitmap(thumbnail,Float.parseFloat(rotate));
                     String savePath = ImageUtils.saveBitmap(mContext,thumbnail,null,null);
                     if(savePath != null) {
                         mediaInfos[0].setThumbnailPath(savePath);

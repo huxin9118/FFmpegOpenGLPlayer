@@ -856,7 +856,7 @@ class FileListActivityRecyclerAdapter extends BaseRecyclerViewAdapter {
                 Log.i(TAG, "doInBackground: "+ mediaInfos[0].toString());
                 thumbnail = ffmr.getScaledFrameAtTime(-1L, mediaInfos[0].getWidth()/4,mediaInfos[0].getHeight()/4 );
                 if(thumbnail != null){
-                    thumbnail = ImageUtils.rotateBitmap(thumbnail,Float.parseFloat(rotate));
+                    thumbnail = ImageUtils.rotateBitmap(thumbnail,mediaInfos[0].getRotate());
                     String savePath = ImageUtils.saveBitmap(mContext,thumbnail,null,null);
                     if(savePath != null) {
                         mediaInfos[0].setThumbnailPath(savePath);

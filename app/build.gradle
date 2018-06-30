@@ -34,6 +34,7 @@ android {
     tasks.withType(JavaCompile) {
         compileTask -> compileTask.dependsOn ndkBuild
     }
+
     task cleanNative(type: Exec) {
         workingDir file('src/main')
         commandLine getNdkBuildCmd(), 'clean'

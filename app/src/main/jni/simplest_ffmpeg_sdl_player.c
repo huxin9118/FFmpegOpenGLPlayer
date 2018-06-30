@@ -1057,7 +1057,7 @@ on_error:
 		avformat_close_input(&pFormatCtx);
 	}
 #if MEDIACODEC_ANDROID		
-	if(mediacodecContext && (error_code == 0 || error_code < -6)){
+	if(error_code == 0 || error_code < -6){
 		(*env)->DeleteLocalRef(env, mediacodecContext.dec_yuv_array);
 		(*env)->DeleteLocalRef(env, mediacodecContext.dec_buffer_array);
 		
@@ -1174,7 +1174,7 @@ void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVF
 		LOGI("yuv_len:%6d\t error_code:%6d", jyuv_len,jerror_code);
 		
 		if(jerror_code == -3){
-			LOGE("error_code:%d TIME_OUT:%d",jerror_code,mediacodec_decoder_getConfig_int(decoder, "timeout"));
+			LOGE("error_code:%d TIME_OUT:%d repeat_count:%d",jerror_code,mediacodec_decoder_getConfig_int(decoder, "timeout"),repeat_count);
 			if(repeat_count < 3){
 				repeat_count++;
 				usleep(10000);
@@ -1184,7 +1184,6 @@ void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVF
 				else{
 					mediacodec_decoder_setConfig_int(decoder, "timeout", mediacodec_decoder_getConfig_int(decoder, "max-timeout"));
 				}
-				continue;
 			}
 			else{
 				repeat_count = 0;
@@ -1206,7 +1205,12 @@ void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVF
 			pFrame->height = jyuv_height;
 			out_len = jyuv_len;
 		}
-		break;
+		if(jerror_code == -3 && repeat_count < 3){
+			LOGE("mediacodec_decoder_decode continue");
+			continue;
+		}else{
+			break;
+		}
 	}
 	
 	if(out_len > 0){

@@ -336,6 +336,7 @@ public class OpenGLActivity extends AppCompatActivity {
         mGLSurface = (GLSurfaceView)findViewById(R.id.mGLSurface);
         mGLSurface.setEGLContextClientVersion(2);
         mGLRenderer = new GLRenderer(mGLSurface);
+        mGLRenderer.nativeCodecType(codec_type);
         mGLSurface.setRenderer(mGLRenderer);
         mGLSurface.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 

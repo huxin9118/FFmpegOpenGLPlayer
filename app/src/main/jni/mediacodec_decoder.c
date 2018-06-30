@@ -212,7 +212,7 @@ int mediacodec_decoder_decode(MediaCodecDecoder* decoder, uint8_t* in, int offse
 			return -2;//ERROR_CODE_OUT_BUF_NULL
 		}
 
-		ssize_t inputBufferIndex = AMediaCodec_dequeueInputBuffer(decoder->codec, decoder->TIME_OUT);
+		ssize_t inputBufferIndex = AMediaCodec_dequeueInputBuffer(decoder->codec, -1);
 		size_t inputBufferSize = 0;
 
 		if (decoder->DEBUG) {
@@ -434,6 +434,9 @@ int mediacodec_decoder_decode(MediaCodecDecoder* decoder, uint8_t* in, int offse
 				
 				}
 				AMediaCodec_releaseOutputBuffer(decoder->codec, outputBufferIndex, 0);
+				if(size > 0){
+					return size;
+				}
 			}
 		}
 

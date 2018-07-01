@@ -31,7 +31,7 @@ MediaCodecDecoder* mediacodec_decoder_alloc1(int isDebug, int timeout, YUV_PIXEL
 }
 
 MediaCodecDecoder* mediacodec_decoder_alloc2(int isDebug) {
-	return mediacodec_decoder_alloc1(isDebug, 0, NV12);
+	return mediacodec_decoder_alloc1(isDebug, 10000, NV12);
 }
 
 MediaCodecDecoder* mediacodec_decoder_alloc3(){
@@ -212,7 +212,7 @@ int mediacodec_decoder_decode(MediaCodecDecoder* decoder, uint8_t* in, int offse
 			return -2;//ERROR_CODE_OUT_BUF_NULL
 		}
 
-		ssize_t inputBufferIndex = AMediaCodec_dequeueInputBuffer(decoder->codec, -1);
+		ssize_t inputBufferIndex = AMediaCodec_dequeueInputBuffer(decoder->codec, decoder->TIME_OUT);
 		size_t inputBufferSize = 0;
 
 		if (decoder->DEBUG) {
@@ -239,18 +239,13 @@ int mediacodec_decoder_decode(MediaCodecDecoder* decoder, uint8_t* in, int offse
 		}
 
 		AMediaCodecBufferInfo bufferInfo;
-		ssize_t outputBufferIndex = 0;
+		ssize_t outputBufferIndex = AMediaCodec_dequeueOutputBuffer(decoder->codec, &bufferInfo, decoder->TIME_OUT);
 		size_t outputBufferSize = 0;
 		size_t expectBufferSize = 0;
-	
-		while (outputBufferIndex != AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
-			outputBufferIndex = AMediaCodec_dequeueOutputBuffer(decoder->codec, &bufferInfo, decoder->TIME_OUT);
-
-			if (decoder->DEBUG) {
-				MediaCodec_LOGI("outputBufferIndex : %d",outputBufferIndex);
-			}
-		
-		
+	    if (decoder->DEBUG) {
+            MediaCodec_LOGI("outputBufferIndex : %d", outputBufferIndex);
+        }
+		if(outputBufferIndex != AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
 			if(outputBufferIndex <= -20000){
 				if (decoder->DEBUG) {
 					MediaCodec_LOGE("AMEDIA_DRM_ERROR_BASE");
@@ -268,7 +263,6 @@ int mediacodec_decoder_decode(MediaCodecDecoder* decoder, uint8_t* in, int offse
 
 			if (outputBufferIndex == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
 				// outputBuffers = codec.getOutputBuffers();
-				continue;
 			} 
 			else if (outputBufferIndex == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
 				/**
@@ -434,12 +428,8 @@ int mediacodec_decoder_decode(MediaCodecDecoder* decoder, uint8_t* in, int offse
 				
 				}
 				AMediaCodec_releaseOutputBuffer(decoder->codec, outputBufferIndex, 0);
-				if(size > 0){
-					return size;
-				}
 			}
 		}
-
 		return size;
 	}
 	else{

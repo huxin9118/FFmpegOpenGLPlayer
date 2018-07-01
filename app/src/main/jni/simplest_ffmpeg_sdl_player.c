@@ -188,7 +188,7 @@ typedef struct MediacodecContext{
 	jobject object_decoder;
 }MediacodecContext;
 void mediacodec_decode_video(JNIEnv* env, MediacodecContext* mediacodecContext, AVPacket *pPacket, AVFrame *pFrame, int *got_picture);
-void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVFrame *pFrame, int *got_picture);
+void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVFrame *pFrame, int *got_picture, int *error_code);
 
 typedef struct RenderContext{
 	uint8* buffer;
@@ -922,29 +922,32 @@ JNIEXPORT jint JNICALL JAVA_RENDER(nativeInitSDLThread)(JNIEnv* env, jobject obj
 						// fflush(fin_rtsp);
 					// }
 				// }
-				
+				do{
 #if MEDIACODEC_ANDROID
-				mediacodec_decode_video(env, &mediacodecContext, filtered_packet, pFrameYUV, &got_picture);
+                    mediacodec_decode_video(env, &mediacodecContext, filtered_packet, pFrameYUV, &got_picture;
 #else
-				mediacodec_decode_video2(mediacodec_decoder, filtered_packet, pFrameYUV, &got_picture);
+				    mediacodec_decode_video2(mediacodec_decoder, filtered_packet, pFrameYUV, &got_picture, &ret);
 #endif
-				if(got_picture)
-				{
-					pthread_mutex_lock(&mut_render);
-					if(!thread_render){
-						memmove(renderContext.buffer, pFrameYUV->data[0], buffer_size);
-						thread_render = 1;
-						pthread_cond_signal(&cond_render);
-					}
-					else{
-						LOGE("render thread run already");
-					}
-					pthread_mutex_unlock(&mut_render);
+                    if(got_picture)
+                    {
+                        pthread_mutex_lock(&mut_render);
+                        if(!thread_render){
+                            memmove(renderContext.buffer, pFrameYUV->data[0], buffer_size);
+                            thread_render = 1;
+                            pthread_cond_signal(&cond_render);
+                        }
+                        else{
+                            LOGE("render thread run already");
+                        }
+                        pthread_mutex_unlock(&mut_render);
 
-					if(thread_picture == 1){
-						
-					}
+                        if(thread_picture == 1){
+
+                        }
+                    }
 				}
+				while(ret == -3);
+
 				av_packet_unref(filter_packet);
 				av_free(filter_packet->data);
 				av_free(filtered_packet->data);//ffmpeg BUG:bsf过滤后需要手动释放packet->data
@@ -1155,7 +1158,7 @@ void mediacodec_decode_video(JNIEnv* env, MediacodecContext* mediacodecContext, 
 	}
 }
 
-void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVFrame *pFrame, int *got_picture){
+void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVFrame *pFrame, int *got_picture, int *error_code){
 	uint8_t *in,*out;
 	int in_len = pPacket->size;
 	int out_len = 0;
@@ -1163,56 +1166,27 @@ void mediacodec_decode_video2(MediaCodecDecoder* decoder, AVPacket *pPacket, AVF
 	out = pFrame->data[0];
 	int repeat_count = 0;
 	int jindex,
-		jyuv_len,
-		jerror_code,
 		jyuv_wdith,
 		jyuv_height,
 		jyuv_pixel;
-		 
-	while(1){
-		jyuv_len = mediacodec_decoder_decode(decoder, in, 0, out, in_len, &jerror_code);
-		LOGI("yuv_len:%6d\t error_code:%6d", jyuv_len,jerror_code);
-		
-		if(jerror_code == -3){
-			LOGE("error_code:%d TIME_OUT:%d repeat_count:%d",jerror_code,mediacodec_decoder_getConfig_int(decoder, "timeout"),repeat_count);
-			if(repeat_count < 3){
-				repeat_count++;
-				usleep(10000);
-				if(mediacodec_decoder_getConfig_int(decoder, "timeout") < mediacodec_decoder_getConfig_int(decoder, "max-timeout")){
-					mediacodec_decoder_setConfig_int(decoder, "timeout", mediacodec_decoder_getConfig_int(decoder, "timeout")+200);
-				}
-				else{
-					mediacodec_decoder_setConfig_int(decoder, "timeout", mediacodec_decoder_getConfig_int(decoder, "max-timeout"));
-				}
-			}
-			else{
-				repeat_count = 0;
-			}
-		}
-		
-		if(jerror_code <= -10000){
-			LOGE("硬件编解码器损坏，请更换编解码器");
-			thread_codec_type = 0;
-		}
-		
-		if(jyuv_len > 0){
-			jyuv_wdith = mediacodec_decoder_getConfig_int(decoder, "width");
-			jyuv_height = mediacodec_decoder_getConfig_int(decoder, "height");;
-			jyuv_pixel = mediacodec_decoder_getConfig_int(decoder, "color-format");
-			LOGI("W x H : %d x %d\t yuv_pixel:%6d", jyuv_wdith,jyuv_height,jyuv_pixel);
-			
-			pFrame->width = jyuv_wdith;
-			pFrame->height = jyuv_height;
-			out_len = jyuv_len;
-		}
-		if(jerror_code == -3 && repeat_count < 3){
-			LOGE("mediacodec_decoder_decode continue");
-			continue;
-		}else{
-			break;
-		}
-	}
-	
+
+    out_len = mediacodec_decoder_decode(decoder, in, 0, out, in_len, error_code);
+    LOGI("yuv_len:%6d\t error_code:%6d", out_len, *error_code);
+    if(out_len > 0){
+        jyuv_wdith = mediacodec_decoder_getConfig_int(decoder, "width");
+        jyuv_height = mediacodec_decoder_getConfig_int(decoder, "height");;
+        jyuv_pixel = mediacodec_decoder_getConfig_int(decoder, "color-format");
+        LOGI("W x H : %d x %d\t yuv_pixel:%6d", jyuv_wdith,jyuv_height,jyuv_pixel);
+
+        pFrame->width = jyuv_wdith;
+        pFrame->height = jyuv_height;
+    }
+
+    if(*error_code <= -10000){
+        LOGE("硬件编解码器损坏，请更换编解码器");
+        thread_codec_type = 0;
+    }
+
 	if(out_len > 0){
 		*got_picture = 1;
 	}

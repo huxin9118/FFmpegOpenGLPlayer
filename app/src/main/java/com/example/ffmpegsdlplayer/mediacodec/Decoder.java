@@ -1,10 +1,5 @@
 package com.example.ffmpegsdlplayer.mediacodec;
 
-/**
- * 解码接口
- * @author chenyang
- *
- */
 public interface Decoder extends Codec {
 
 	/**

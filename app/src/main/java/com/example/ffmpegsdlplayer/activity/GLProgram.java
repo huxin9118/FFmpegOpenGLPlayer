@@ -30,7 +30,7 @@ public class GLProgram {
     private int _tIIindex;
     private int _tIIIindex;
     // vertices on screen
-    private float[] _vertices;
+    public float[] _vertices;
     // handles
     private int _positionHandle = -1, _coordHandle = -1;
     private int _yhandle = -1, _uhandle = -1, _vhandle = -1;
@@ -103,7 +103,7 @@ public class GLProgram {
                 break;
             case 0:
             default:
-                _vertices = squareVertices0C;
+                _vertices = squareVertices;
                 _textureI = GLES20.GL_TEXTURE0;
                 _textureII = GLES20.GL_TEXTURE1;
                 _textureIII = GLES20.GL_TEXTURE2;
@@ -119,10 +119,10 @@ public class GLProgram {
     }
 
     public void buildProgram() {
-        // TODO createBuffers(_vertices, coordVertices);
+        // TODO createBuffers(_vertices, coordVertices_rotated_0);
         if (_program <= 0) {
             _program = createProgram(VERTEX_SHADER, FRAGMENT_SHADER);
-            createBuffers(_vertices);
+            createBuffers(_vertices, coordVertices_rotated_0);
         }
         Log.i(TAG,"_program = " + _program);
 
@@ -334,16 +334,28 @@ public class GLProgram {
     /**
      * these two buffers are used for holding vertices, screen vertices and texture vertices.
      */
-    void createBuffers(float[] vert) {
-        _vertice_buffer = ByteBuffer.allocateDirect(vert.length * 4);
-        _vertice_buffer.order(ByteOrder.nativeOrder());
-        _vertice_buffer.asFloatBuffer().put(vert);
-        _vertice_buffer.position(0);
+    void createBuffers(float[] vert, float[] coord) {
+        if(_vertice_buffer == null) {
+            _vertice_buffer = ByteBuffer.allocateDirect(vert.length * 4);
+            _vertice_buffer.order(ByteOrder.nativeOrder());
+            _vertice_buffer.asFloatBuffer().put(vert);
+            _vertice_buffer.position(0);
+        }else{
+            _vertice_buffer.clear();
+            _vertice_buffer.order(ByteOrder.nativeOrder());
+            _vertice_buffer.asFloatBuffer().put(vert);
+            _vertice_buffer.position(0);
+        }
 
         if (_coord_buffer == null) {
-            _coord_buffer = ByteBuffer.allocateDirect(coordVertices.length * 4);
+            _coord_buffer = ByteBuffer.allocateDirect(coordVertices_rotated_0.length * 4);
             _coord_buffer.order(ByteOrder.nativeOrder());
-            _coord_buffer.asFloatBuffer().put(coordVertices);
+            _coord_buffer.asFloatBuffer().put(coord);
+            _coord_buffer.position(0);
+        }else{
+            _coord_buffer.clear();
+            _coord_buffer.order(ByteOrder.nativeOrder());
+            _coord_buffer.asFloatBuffer().put(coord);
             _coord_buffer.position(0);
         }
     }
@@ -356,20 +368,41 @@ public class GLProgram {
         }
     }
 
-    static float[] squareVertices0C = { -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, }; // 0度
-    static float[] squareVertices90C = { -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, -1.0f, }; // 90度
-    static float[] squareVertices180C = { 1.0f, 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, }; // 180度
-    static float[] squareVertices270C = { 1.0f, -1.0f, 1.0f, 1.0f, -1.0f, -1.0f, -1.0f, 1.0f, }; // 270度
+    public static float[] squareVertices = { -1.0f, -1.0f, 1.0f, -1.0f, -1.0f, 1.0f, 1.0f, 1.0f, }; 
 
-    static float[] squareVertices1 = { -1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 1.0f, }; // left-top
+    public static float[] squareVertices1 = { -1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 1.0f, }; // left-top
 
-    static float[] squareVertices2 = { 0.0f, -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, }; // right-bottom
+    public static float[] squareVertices2 = { 0.0f, -1.0f, 1.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, }; // right-bottom
 
-    static float[] squareVertices3 = { -1.0f, -1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, }; // left-bottom
+    public static float[] squareVertices3 = { -1.0f, -1.0f, 0.0f, -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, }; // left-bottom
 
-    static float[] squareVertices4 = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, }; // right-top
+    public static float[] squareVertices4 = { 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, }; // right-top
 
-    private static float[] coordVertices = { 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, };// whole-texture
+    public static final float coordVertices_rotated_0[] = {
+            0.0f, 1.0f,
+            1.0f, 1.0f,
+            0.0f, 0.0f,
+            1.0f, 0.0f,
+    };
+
+    public static final float coordVertices_rotated_90[] = {
+            1.0f, 1.0f,
+            1.0f, 0.0f,
+            0.0f, 1.0f,
+            0.0f, 0.0f,
+    };
+    public static final float coordVertices_rotated_180[] = {
+            1.0f, 0.0f,
+            0.0f, 0.0f,
+            1.0f, 1.0f,
+            0.0f, 1.0f,
+    };
+    public static final float coordVertices_rotated_270[] = {
+            0.0f, 0.0f,
+            0.0f, 1.0f,
+            1.0f, 0.0f,
+            1.0f, 1.0f,
+    };
 
     private static final String VERTEX_SHADER = "attribute vec4 vPosition;\n" + "attribute vec2 a_texCoord;\n"
             + "varying vec2 tc;\n" + "void main() {\n" + "gl_Position = vPosition;\n" + "tc = a_texCoord;\n" + "}\n";

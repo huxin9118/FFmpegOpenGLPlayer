@@ -1,15 +1,11 @@
 package com.example.ffmpegsdlplayer.activity;
 
-import android.app.Activity;
-import android.graphics.Bitmap;
 import android.opengl.GLES20;
-import android.opengl.GLException;
 import android.opengl.GLSurfaceView;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.Arrays;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -31,6 +27,7 @@ public class GLRenderer implements GLSurfaceView.Renderer {
     private ByteBuffer u;
     private ByteBuffer v;
     private float[] squareVertices;
+    private float[] coordVertices;
     private int rotate;
     private RenderListener listener;
 
@@ -102,15 +99,15 @@ public class GLRenderer implements GLSurfaceView.Renderer {
                 }
                 if (screen_wh_scale == pixel_wh_scale) {
                     Log.i(TAG, "updateZoom(ZOOM_INSIDE): screen_wh_scale == pixel_wh_scale : " + screen_wh_scale + " == " + pixel_wh_scale);
-                    prog.createBuffers(squareVertices);
+                    squareVertices = prog._vertices;
                 } else if (screen_wh_scale > pixel_wh_scale) {
                     Log.i(TAG, "updateZoom(ZOOM_INSIDE): screen_wh_scale > pixel_wh_scale : " + screen_wh_scale + " < " + pixel_wh_scale);
                     float width_scale = pixel_wh_scale / screen_wh_scale;
-                    prog.createBuffers(multSquareVertices(squareVertices,new float[]{width_scale, 1.0f, width_scale, 1.0f, width_scale, 1.0f, width_scale, 1.0f}));
+                    squareVertices = multSquareVertices(prog._vertices,new float[]{width_scale, 1.0f, width_scale, 1.0f, width_scale, 1.0f, width_scale, 1.0f});
                 } else {
                     Log.i(TAG, "updateZoom(ZOOM_INSIDE): screen_wh_scale < pixel_wh_scale : " + screen_wh_scale + " > " + pixel_wh_scale);
                     float height_scale = screen_wh_scale / pixel_wh_scale;
-                    prog.createBuffers(multSquareVertices(squareVertices,new float[]{1.0f, height_scale, 1.0f, height_scale, 1.0f, height_scale, 1.0f, height_scale}));
+                    squareVertices = multSquareVertices(prog._vertices,new float[]{1.0f, height_scale, 1.0f, height_scale, 1.0f, height_scale, 1.0f, height_scale});
                 }
             }
             else if(render_zoom == OpenGLActivity.ZOOM_ORIGINAL) {
@@ -124,15 +121,17 @@ public class GLRenderer implements GLSurfaceView.Renderer {
                     wdith_ps_scale = 1f * pixel_height / screen_width;
                     height_ps_scale = 1f * pixel_width / screen_height;
                 }
-                prog.createBuffers(multSquareVertices(squareVertices,new float[]{wdith_ps_scale, height_ps_scale, wdith_ps_scale, height_ps_scale,
-                                                                                wdith_ps_scale, height_ps_scale, wdith_ps_scale, height_ps_scale}));
+                squareVertices = multSquareVertices(prog._vertices,new float[]{wdith_ps_scale, height_ps_scale, wdith_ps_scale, height_ps_scale,
+                                                                                wdith_ps_scale, height_ps_scale, wdith_ps_scale, height_ps_scale});
             }
             else if(render_zoom == OpenGLActivity.ZOOM_STRETCH) {
                 Log.i(TAG, "updateZoom(ZOOM_STRETCH)");
-                prog.createBuffers(squareVertices);
+                squareVertices = prog._vertices;;
             }
 
-            // request to render
+            prog.createBuffers(squareVertices,coordVertices);
+
+//             request to render
             if(mSurface.get() != null) {
                 mSurface.get().requestRender();
             }
@@ -146,11 +145,11 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         Log.i(TAG, "updateParameter pixel W x H : "+ width + "x" + height + " rotate :" + rotate);
         this.rotate = rotate;
         switch (rotate){
-            case 0: squareVertices = GLProgram.squareVertices0C; break;
-            case 90: squareVertices = GLProgram.squareVertices90C; break;
-            case 180: squareVertices = GLProgram.squareVertices180C; break;
-            case 270: squareVertices = GLProgram.squareVertices270C; break;
-            default: squareVertices = GLProgram.squareVertices0C; break;
+            case 0: coordVertices = GLProgram.coordVertices_rotated_0; break;
+            case 90: coordVertices = GLProgram.coordVertices_rotated_90; break;
+            case 180: coordVertices = GLProgram.coordVertices_rotated_180; break;
+            case 270: coordVertices = GLProgram.coordVertices_rotated_270; break;
+            default: coordVertices = GLProgram.coordVertices_rotated_0; break;
         }
         if (width > 0 && height > 0) {
             // 初始化容器
@@ -163,11 +162,11 @@ public class GLRenderer implements GLSurfaceView.Renderer {
                     y = ByteBuffer.allocate(yarraySize);
                     u = ByteBuffer.allocate(uvarraySize);
                     v = ByteBuffer.allocate(uvarraySize);
+                    clearScreen((byte)0,(byte)128,(byte)128);
                 }
             }
         }
         updateZoom(render_zoom);
-//        clearScreen(127);
     }
 
     /**
@@ -190,17 +189,23 @@ public class GLRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    void clearScreen(byte data){
+    void clearScreen(byte ydata,byte udata, byte vdata){
         if (pixel_width > 0 && pixel_height > 0) {
             int yarraySize = pixel_width * pixel_height;
             int uvarraySize = yarraySize / 4;
-            byte[] ydata = new byte[yarraySize];
-            byte[] udata = new byte[uvarraySize];
-            byte[] vdata = new byte[uvarraySize];
-            Arrays.fill(ydata, data);
-            Arrays.fill(udata, data);
-            Arrays.fill(vdata, data);
-            updateData(ydata, udata, vdata);
+            byte[] ydatas = new byte[yarraySize];
+            byte[] udatas = new byte[uvarraySize];
+            byte[] vdatas = new byte[uvarraySize];
+            Arrays.fill(ydatas, ydata);
+            Arrays.fill(udatas, udata);
+            Arrays.fill(vdatas, vdata);
+
+            y.clear();
+            u.clear();
+            v.clear();
+            y.put(ydatas, 0, ydatas.length);
+            u.put(udatas, 0, udatas.length);
+            v.put(vdatas, 0, vdatas.length);
         }
     }
 
